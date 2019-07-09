@@ -1,0 +1,83 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr,
+acronym, address, big, cite, code, del, dfn, em, img, ins, kbd,
+q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i,
+center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td, article, aside,
+canvas, details, embed, figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary, time, mark, audio, video{
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  font-family: SourceHanSansSC;
+}
+ol,ul{
+  list-style: none;
+}
+html,body{
+  width:100%;
+  height: 100%;
+  margin:0 auto;
+}
+
+.global-personnel-tree-organization .el-tree-node__content {
+  height: 30px;
+}
+/*阿里图标初始化*/
+.icon {
+  width: 1em; height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+.global-personnel-tree-organization .el-tree-node__content:hover {
+  background: #daefff;
+  color: #0057ff;
+}
+.el-dialog__title{
+  font-size:14px;
+}
+.el-table__body tr.hover-row>td{
+  background-color: #ebf7ff;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.hrm-dialog .el-dialog__title{
+  font-family: SourceHanSansSC;
+  font-size:14px;
+}
+.hrm-dialog .el-dialog__header{
+  border-bottom:1px #f3f3f3 solid;
+}
+.hrm-dialog .el-dialog__footer{
+  border-top:1px #f3f3f3 solid;
+  padding:20px 20px;
+}
+#app .custom-button{
+  padding:9px 30px;
+  font-size:12px;
+}
+
+.viewing-table .el-table__body-wrapper{
+  height:280px;
+  /*overflow-y: scroll;*/
+}
+::-webkit-scrollbar{
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb{
+  border-radius: 2px;
+  background-color: rgba(50,50,50,.3);
+}
+::-webkit-scrollbar-track{
+  border-radius: 2px;
+  background-color: rgba(50,50,50,.1);
+}
