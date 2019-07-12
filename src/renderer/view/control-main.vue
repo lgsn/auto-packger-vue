@@ -57,6 +57,7 @@
             <p v-if="item.msg">{{item.msg}}</p>
           </li>
         </ul>
+        <el-button v-if="redeployFlag" class="packing-btn" size="mini" type="success" @click="redeploy">重新部署</el-button>
       </div>
     </div>
 
@@ -143,6 +144,7 @@
         moduleFlag: 1,
         connectList: [],
         startPack: 1,
+        redeployFlag: false,
         connectStep: [],
       }
     },
@@ -300,10 +302,21 @@
       },
 
       checkOpen (item) {
-        this.connectList.push(item)
-        this.checkId = item.key
-        this.moduleFlag = 2
-        this.checkHost = item
+        if (!this.connectList.length) {
+          this.connectList.push(item)
+        } else {
+          let flag = this.connectList.findIndex(v=>v.key == item.key)
+
+          if (flag > -1) {
+
+          } else {
+            this.connectList.push(item)
+          }
+          this.checkId = item.key
+          this.moduleFlag = 2
+          this.checkHost = item
+        }
+
       },
 
       startPacking () {
@@ -356,6 +369,7 @@
           vm.connectStep.push({
             name: '部署完成'
           })
+          vm.redeployFlag = true
         })
 
 
@@ -368,6 +382,11 @@
         // this.dirFile(localFilePath, uploadFile, markDir)
 
 
+      },
+
+      redeploy () {
+        this.redeployFlag = false
+        this.startPacking()
       },
 
       // 获取目录下的文件
@@ -558,5 +577,10 @@
       font-size:10px;
       color:#03cc74;
     }
+  }
+  .packing-btn{
+    background:#03cc74;
+    margin-left:20px;
+    margin-top:20px;
   }
 </style>
