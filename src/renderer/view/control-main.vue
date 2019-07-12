@@ -7,7 +7,7 @@
       <p class="left-title">不知道写什么</p>
       <ul>
         <li :class="{'check-list': checkId == 'none'}" @click="openHost('none')">Host</li>
-        <li v-for="(item, index) in connectList" :key="index" :class="{'check-list': checkId == item.key}" @click="openHost(item.key)">{{item.hostName}}</li>
+        <li v-for="(item, index) in connectList" :key="index" :class="{'check-list': checkId == item.key}" @click="openHost(item)">{{item.hostName}}</li>
       </ul>
 
     </div>
@@ -31,7 +31,8 @@
               <i class="el-icon-more"></i>
             </span>
             <div>
-              <el-Button size="mini" type="primary" icon="el-icon-edit" @click="editorHost(item)">修改</el-Button>
+              <el-Button class="btn-block" size="mini" type="primary" icon="el-icon-edit" @click="editorHost(item)">修改</el-Button>
+              <el-Button class="btn-block" size="mini" type="danger" icon="el-icon-delete" @click="deletedHost(item)">删除</el-Button>
             </div>
           </el-popover>
         </li>
@@ -39,8 +40,24 @@
     </div>
 
     <!--右侧连接内容-->
-    <div v-else class="control-right">
-      13123
+    <div v-else class="control-connect">
+
+      <!--start packing-->
+      <div v-if="startPack == 1" class="start-packing">
+        <p><span>当前部署本地地址：</span>{{checkHost.localPath}}</p>
+        <p><span>当前部署项目IP：</span>{{checkHost.host}}</p>
+        <p><span>当前部署远程地址：</span>{{checkHost.uploadUrl}}</p>
+        <el-button class="start-btn" size="mini" @click="startPacking">立即部署</el-button>
+      </div>
+
+      <div v-if="startPack == 2">
+        <ul class="connect-step">
+          <li v-for="(item, index) in connectStep" :key="index">
+            <p>{{item.name}}</p>
+            <p v-if="item.msg">{{item.msg}}</p>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!--新增Host-->
@@ -98,6 +115,9 @@
 
 <script>
   import fs from 'fs'
+  const path = require('path')
+  const Client =  require('scp2')
+  import {exec} from 'child_process'
   export default {
     name: "control-main",
     data () {
@@ -117,10 +137,13 @@
           type: 0,
           visible: false,
         },
+        checkHost: {},
         hostList: {},
         showFlag: false,
         moduleFlag: 1,
         connectList: [],
+        startPack: 1,
+        connectStep: [],
       }
     },
     created () {
@@ -144,8 +167,9 @@
       },
 
       openHost (type) {
-        this.checkId = type
+        this.checkId = type == 'none' ? 'none' : type.key
         this.moduleFlag = type == 'none' ? 1 : 2
+        this.checkHost = type
       },
 
       newAddHost () {
@@ -194,8 +218,8 @@
           let person = {}
 
           /**
-          * 文件是否存在内容
-          **/
+           * 文件是否存在内容
+           **/
           if (data && data != undefined){
             let strPerson = data.toString()
             person = JSON.parse(strPerson)
@@ -216,13 +240,13 @@
 
           let writeStr = JSON.stringify(person,null,"\t")
           fs.writeFile(`${this.$hostConfig}/data.json`,writeStr,function(err){
-             if (err) {
-               vm.$Message.error('失败')
-             } else {
-               vm.$Message.success('成功')
-               vm.initHostConfig()
-               vm.closeHost()
-             }
+            if (err) {
+              vm.$Message.error('失败')
+            } else {
+              vm.$Message.success('成功')
+              vm.initHostConfig()
+              vm.closeHost()
+            }
           })
         })
       },
@@ -242,10 +266,131 @@
         this.hostDialog.uploadUrl = item.uploadUrl
       },
 
+      deletedHost (item) {
+        let vm = this
+        this.$alert('是否确认删除', '删除HSOT', {
+          confirmButtonText: '确定',
+          callback: action => {
+            if (action == 'confirm') {
+              vm.deleteHostAPI(item.key)
+            }
+          }
+        });
+      },
+
+      deleteHostAPI (key) {
+        let vm = this
+        let newHost = {}
+        for(let i in this.hostList) {
+          if (i != key) {
+            newHost[i] = this.hostList[i]
+          }
+        }
+
+        let writeStr = JSON.stringify(newHost,null,"\t")
+        fs.writeFile(`${this.$hostConfig}/data.json`,writeStr,function(err){
+          if (err) {
+            vm.$Message.error('失败')
+          } else {
+            vm.$Message.success('成功')
+            vm.initHostConfig()
+          }
+        })
+
+      },
+
       checkOpen (item) {
         this.connectList.push(item)
         this.checkId = item.key
         this.moduleFlag = 2
+        this.checkHost = item
+      },
+
+      startPacking () {
+        this.connectStep = [
+          {
+            name: '正在执行打包'
+          }
+        ]
+        let vm = this
+        let localPath = this.checkHost.localPath
+        let command = this.checkHost.packCmd
+        this.startPack = 2
+        exec(`${command}`, {cwd:`${localPath}`}, (error, stdout, stderr) => {
+          if (error) {
+            vm.connectStep.push({
+              name: '打包错误',
+              msg: error
+            })
+            vm.$Message.error('打包错误',error)
+          } else {
+            vm.connectStep.push({
+              name: '打包完成'
+            })
+            vm.connectServers()
+          }
+        })
+      },
+
+      connectServers () {
+        let vm = this
+        this.connectStep.push({
+          name: '正在上传文件'
+        })
+        Client.scp(`${this.checkHost.localPath}${path.sep}dist`, {
+          host: this.checkHost.host,
+          username: this.checkHost.userName,
+          password: this.checkHost.password,
+          path: this.checkHost.uploadUrl
+        }, function (err) {
+          if (err) {
+            vm.connectStep.push({
+              name: '文件上传错误',
+              msg: err
+            })
+            return
+          }
+          vm.connectStep.push({
+            name: '上传完成'
+          })
+          vm.connectStep.push({
+            name: '部署完成'
+          })
+        })
+
+
+        /**
+         * TODO 手动上传
+         */
+        let localFilePath = `${this.checkHost.localPath}${path.sep}dist${path.sep}`
+        let uploadFile = []
+        let markDir = []
+        // this.dirFile(localFilePath, uploadFile, markDir)
+
+
+      },
+
+      // 获取目录下的文件
+      dirFile (dir, filesList, dirList) {
+
+        // 获取当前目录下所有内容
+        let files = fs.readdirSync(dir)
+
+        if (!files.length) return
+
+        files.forEach(item => {
+
+          // 拼接路径
+          let fullPath = path.join(dir, item)
+
+          let stat = fs.statSync(fullPath)
+          if (stat.isDirectory()) {
+            dirList.push(fullPath)
+            this.dirFile(fullPath, filesList, dirList)
+          } else {
+            filesList.push(fullPath)
+          }
+        })
       }
 
     }
@@ -309,6 +454,50 @@
         }
       }
     }
+    .control-connect{
+      width:calc(100% - 20px);
+      height:100%;
+      background:#141628;
+      position: relative;
+      .start-packing{
+        width:500px;
+        height:170px;
+        padding:20px;
+        box-sizing: border-box;
+        position: absolute;
+        left:50%;
+        top:50%;
+        transform: translate(-50%,-50%);
+        color:#0e364e;
+        font-size:14px;
+        line-height:20px;
+        font-weight:600;
+        border-radius:10px;
+        background:#fff;
+        p{
+          height:30px;
+          line-height:30px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+          span {
+            display: inline-block;
+            width:130px;
+          }
+        }
+        .start-btn{
+          display: block;
+          background:#01cc74;
+          border-color:#01cc74;
+          font-weight:600;
+          color:#fff;
+          margin:20px auto 0;
+        }
+      }
+    }
+  }
+  .btn-block{
+    display: block;
   }
   .list-icon{
     display: inline-block;
@@ -360,5 +549,14 @@
   }
   .none{
     display: none;
+  }
+  .connect-step{
+    padding:20px;
+    li{
+      height:16px;
+      line-height:16px;
+      font-size:10px;
+      color:#03cc74;
+    }
   }
 </style>

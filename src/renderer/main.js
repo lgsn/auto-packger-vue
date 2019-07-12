@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import {Button, Dialog, Input, Message, Popover} from 'element-ui';
+import {Button, Dialog, Input, Message, Popover, Alert, MessageBox} from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import App from './App'
 import router from './router'
@@ -13,6 +13,7 @@ Vue.config.productionTip = false
 
 Vue.$hostConfig = Vue.prototype.$hostConfig = `${HOST_COFING}${path.sep}HOSTLOCAL`
 Vue.$Message = Vue.prototype.$Message = Message
+Vue.prototype.$alert = MessageBox.alert;
 Vue.use(Button)
 Vue.use(Dialog)
 Vue.use(Input)
