@@ -7,6 +7,7 @@
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",
+    "mac": "node .electron-vue/build.js && electron-builder --platform=drwin ",
     "build:dir": "node .electron-vue/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "build:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
@@ -17,8 +18,8 @@
     "postinstall": ""
   },
   "build": {
-    "productName": "auto-packing",
-    "appId": "com.example.yourapp",
+    "productName": "自动部署",
+    "appId": "XYD.Auto.packing",
     "directories": {
       "output": "build"
     },
@@ -84,6 +85,7 @@
     "node-loader": "^0.6.0",
     "node-sass": "^4.9.2",
     "sass-loader": "^7.0.3",
+    "scp2": "^0.5.0",
     "style-loader": "^0.21.0",
     "url-loader": "^1.0.1",
     "vue-html-loader": "^1.2.4",
