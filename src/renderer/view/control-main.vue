@@ -336,6 +336,7 @@
               msg: error
             })
             vm.$Message.error('打包错误',error)
+            vm.redeployFlag = true
           } else {
             vm.connectStep.push({
               name: '打包完成'
@@ -361,6 +362,7 @@
               name: '文件上传错误',
               msg: err
             })
+            vm.redeployFlag = true
             return
           }
           vm.connectStep.push({
